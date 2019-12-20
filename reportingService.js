@@ -707,6 +707,10 @@ var reportingService = new function () {
     exactiulog('DEBUG MODE - cookie and localStorage cleared!!');
   }
 
+  function extendWithContext = function(event) {
+    return extend(contextParams(), event);
+  }
+
   var initReportingService = function() {
     DEBUG_MODE = getUrlVars()['debug'] == 'true';
     if (typeof clientSettings == 'undefined') {
@@ -750,4 +754,5 @@ var reportingService = new function () {
   this.getFirstVisit = getFirstVisit;
   this.returnAllUTMs = returnAllUTMs;
   this.getPageVariant = getPageVariant;
+  this.extendWithContext = extendWithContext;
 };
