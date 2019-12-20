@@ -168,6 +168,67 @@ var reportingService = new function () {
     }
   }
 
+  function gaClientID() {
+    try {
+      var trackers = ga.getAll();
+      var i, len;
+      for (i = 0, len = trackers.length; i < len; i += 1) {
+        if (trackers[i].get('trackingId') === clientSettings.gaTrackerID) {
+          return trackers[i].get('clientId');
+        }
+      }
+    } catch(e) {}
+    return 'false';
+  }
+
+  var newSessionId = function () {
+    var currentDate = (function () {
+      var today = new Date();
+      var dd = today.getDate().toString();
+      var mm = (today.getMonth()+1).toString(); //January is 0!
+      var yyyy = today.getFullYear().toString();
+      if (dd.length<2) {
+        dd = '0' + dd;
+       }
+       if (mm.length<2) {
+           mm = '0' + mm;
+       }
+       return yyyy + mm + dd;
+    }) ();
+    var randomNumberString = Math.floor((Math.random() * 10000000) + 1).toString();
+    var randomEightDigitNumber = (function () {
+      if (randomNumberString.length === 8) {
+        return randomNumberString;
+      } else {
+        while (randomNumberString.length < 8) {
+          randomNumberString = '0' + randomNumberString;
+        } return randomNumberString;
+      }
+    }) ();
+    return currentDate + '|' + randomEightDigitNumber;
+   };
+
+   var newHitId = (function () {
+      var currentTime = (function () {
+                        var today = new Date();
+                        var hh = today.getHours();
+                        var mm = today.getMinutes();
+                        var ss = today.getSeconds();
+
+                         if (hh<10) {
+                            hh = '0' + hh;
+                          }
+                         if (mm<10) {
+                            mm = '0' + mm;
+                          }
+                         if (ss<10) {
+                            ss = '0' + ss;
+                          }
+                        return hh + ":" + mm + ":" + ss;
+                      }) ();
+     return currentTime;
+   }) ();
+
   // sets a cookie with unique UID
   function initCookie() {
     var cookie = Cookies.getJSON(clientSettings['cookieName']);
@@ -176,6 +237,7 @@ var reportingService = new function () {
       Cookies.set(clientSettings['cookieName'], {uid: ID()}, { expires: clientSettings.expireAfterDays });
       exactiulog('NEW cookie generated', getCookie('uid'), getCookie());
     }
+
     return cookie;
   }
 
@@ -205,7 +267,7 @@ var reportingService = new function () {
   // set the cookie and datalayer with hash of values
   function setCookie(obj) {
     var newCookie = extend(true, getCookie(), obj);
-    Cookies.set(clientSettings['cookieName'], newCookie, { expires: 90 });
+    Cookies.set(clientSettings['cookieName'], newCookie, { expires: clientSettings.expireAfterDays });
     // exactiulog('cookie set:', obj, 'new cookie', Cookies.getJSON(clientSettings['cookieName']));
     return Cookies.getJSON(clientSettings['cookieName']);
   }
@@ -701,6 +763,9 @@ var reportingService = new function () {
   var clearAllMemory = function(){
     Cookies.remove(clientSettings.cookieName);
     Cookies.remove(clientSettings.notificationsCookieName || CookieNotificationCookie);
+    Cookies.remove('clientId');
+    Cookies.remove('sessionId');
+    Cookies.remove('hitId');
     Cookies.remove('fvTime');
     Cookies.remove('fvDay');
     localStorage.clear();
@@ -708,7 +773,18 @@ var reportingService = new function () {
   }
 
   function extendWithContext = function(event) {
-    return extend(contextParams(), event);
+    var inThirtyMinutes = new Date(new Date().getTime() + 30 * 60 * 1000);
+    // set sessionId for 30 mins
+    if (!Cookies.get('sessionId')) {
+      Cookies.set('sessionId', newSessionId(), { expires: inThirtyMinutes });
+    }
+    // set hitId for 30 mins
+    if (!Cookies.get('hitId')) {
+      Cookies.set('hitId', newHitId, { expires: inThirtyMinutes });
+    }
+    var ids = {clientId: Cookies.get('clientId'), sessionId: Cookies.get('sessionId'), hitId: Cookies.get('hitId')};
+    var allContext = extend(contextParams(), ids)
+    return extend(allContext, event);
   }
 
   var initReportingService = function() {
@@ -718,6 +794,10 @@ var reportingService = new function () {
     } else {
       if (DEBUG_MODE) {
         clearAllMemory();
+      }
+      // set user id for 10 years (or until cookies are cleared)
+      if (!Cookies.get('clientId')) {
+        Cookies.set('clientId', gaClientID(), { expires: 3650 });
       }
       // try to get the cookie, or initialize a new one
       var cookie = getCookie();
