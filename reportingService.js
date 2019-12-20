@@ -772,7 +772,7 @@ var reportingService = new function () {
     exactiulog('DEBUG MODE - cookie and localStorage cleared!!');
   }
 
-  function extendWithContext = function(event) {
+  var extendWithContext = function(event) {
     var inThirtyMinutes = new Date(new Date().getTime() + 30 * 60 * 1000);
     // set sessionId for 30 mins
     if (!Cookies.get('sessionId')) {
@@ -783,7 +783,7 @@ var reportingService = new function () {
       Cookies.set('hitId', newHitId, { expires: inThirtyMinutes });
     }
     var ids = {clientId: Cookies.get('clientId'), sessionId: Cookies.get('sessionId'), hitId: Cookies.get('hitId')};
-    var allContext = extend(contextParams(), ids)
+    var allContext = extend(getContextParams(), ids)
     return extend(allContext, event);
   }
 
