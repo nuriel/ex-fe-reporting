@@ -17,8 +17,8 @@
   "firstName": "Ilya",
   "appointmentTypeID": "9912406",
   "lastName": "Libin",
-  "phone": "+10542107088",
-  "email": "libin.ilya@gmail.com",
+  "phone": "+105555555",
+  "email": "example@example.com",
   "fields": [
     {
       "id": 6282061,
