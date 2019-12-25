@@ -11,6 +11,10 @@
     'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
     })(window,document,'script','dataLayer','GTM-TVRZX55');</script>
     <!-- End Google Tag Manager -->
+
+
+    <script>
+    </script>
   </head>
 
   <body>
@@ -151,12 +155,105 @@
   <br>
   <button id="lp-cir-button-46" >faq-how-does-it-work</button>
   <br>
+  <h2>Ilya's dubugging</h2>
+  ClientId <input type="text" value="" id="js-fields-clientId"/><br/>
+  Datetime <input type="text" value="" id="js-app-datetime"/><br/>
+  firstName <input type="text" value="Bob" id="js-app-firstName"/><br/>
+  lastName <input type="text" value="Marley" id="js-app-lastName"/><br/>
+  phone <input type="text" value="112233445566" id="js-app-phone"/><br/>
+  email <input type="text" value="bob@marley.com" id="js-app-email"/><br/>
+  <button id="demo-create-appointment">Create Appointment</button>
   <br>
-  <br>
+  <br><br><br><br><br>
 
   </body>
   <!-- Google Tag Manager (noscript) -->
   <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TVRZX55"
   height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <!-- End Google Tag Manager (noscript) -->
+  <script>
+    (async function() {
+      const endpoint = 'https://09wpk27ysj.execute-api.us-west-1.amazonaws.com/prod';
+      setTimeout(populateClientId, 1000);
+      await fetchAvailableDate()
+      document.querySelector('#demo-create-appointment').addEventListener('click', createAppointment);
+
+
+      function populateClientId() {
+        document.querySelector('#js-fields-clientId').value = ga.getAll()[0].get('clientId');
+      }
+      
+      async function fetchAvailableDate() {
+        date = new Date();
+        const today = date.getFullYear()+'-' + (date.getMonth()+1) + '-'+date.getDate();
+        const query = `availability/times?date=${today}&appointmentTypeID=9912406`;
+        const url = `${endpoint}/${query}`;
+        const times = await fetch(url).then(data => data.json());
+        document.querySelector('#js-app-datetime').value = times[0].time;
+      }
+
+      async function createAppointment() {
+        const payload = {
+          "owner": 17607485,
+          "isIntegratedSquarespace": false,
+          "linkAppointmentType": null,
+          "linkCalendar": "3184393",
+          "appointmentType": 9912406,
+          "calendar": 3184393,
+          "datetime": "2019-12-25T01:00:00-0500",
+          "firstName": "Ilya",
+          "appointmentTypeID": "9912406",
+          "lastName": "Libin",
+          "phone": "+10542107088",
+          "email": "libin.ilya@gmail.com",
+          "fields": [
+            {
+              "id": 6282061,
+              "value": "Selling Test Test"
+            },
+            {
+              "id": 6372527,
+              "value": "1-5 Pieces"
+            },
+            {
+              "id": 7059843,
+              "value": "dummy-clientId"
+            },
+            {
+              "id": 6815613,
+              "value": "REFERRAL CAMPAIGN"
+            },
+            {
+              "id": 6707893,
+              "value": "REFERRAL SOURCE"
+            }
+          ],
+          "pay_later": 1
+        }
+
+        document.querySelectorAll("[id^='js-app']").forEach($item => {
+          const field = $item.id.split('-').pop();
+          payload[field] = $item.value;
+        })
+  
+        payload.fields = payload.fields.map(item => {
+          if(item.id === 7059843) {
+            item.value = document.querySelector('#js-fields-clientId').value;
+            return item;
+          } else {
+            return item;
+          }
+        })
+  
+        const response = await fetch(`${endpoint}/appointments`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload)
+        }).then(data => data.json());
+        alert(JSON.stringify(response));
+      }
+    })()
+  </script>
 </html>
