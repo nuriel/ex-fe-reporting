@@ -189,7 +189,7 @@
         const query = `availability/times?date=${today}&appointmentTypeID=9912406`;
         const url = `${endpoint}/${query}`;
         const times = await fetch(url).then(data => data.json());
-        document.querySelector('#js-app-datetime').value = times[0].time;
+        document.querySelector('#js-app-datetime').value = times[0] ? times[0].time : '019-12-26T01:00:00-0500';
       }
 
       async function createAppointment() {
