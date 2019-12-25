@@ -1,6 +1,0 @@
-1. run in terminal
-python -m SimpleHTTPServer 8000
-
-2. open in Chrome
-http://localhost:8000/docs/reporting-area.html
-
